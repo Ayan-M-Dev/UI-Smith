@@ -1,4 +1,4 @@
-import { type TamboComponent } from "@tambo-ai/react";
+// import { type TamboComponent } from "@tambo-ai/react";
 
 import { Button } from "@/components/generative/button";
 import { Card } from "@/components/generative/card";
@@ -29,7 +29,7 @@ import { testimonialSectionPropsSchema } from "@/schemas/testimonial-section.sch
  * - propsSchema: Zod schema defining valid props (prevents hallucination)
  */
 
-export const tamboComponents: TamboComponent[] = [
+export const tamboComponents: any[] = [
     {
         name: "Button",
         description: `A versatile button component for user interactions and calls-to-action.
@@ -283,9 +283,9 @@ export const tamboComponents: TamboComponent[] = [
  * Utility class for component management and lookup.
  */
 export class TamboComponentRegistry {
-    private components: Map<string, TamboComponent>;
+    private components: Map<string, any>;
 
-    constructor(componentList: TamboComponent[]) {
+    constructor(componentList: any[]) {
         this.components = new Map();
         componentList.forEach((comp) => {
             this.components.set(comp.name, comp);
@@ -295,7 +295,7 @@ export class TamboComponentRegistry {
     /**
      * Get a component by name
      */
-    get(name: string): TamboComponent | undefined {
+    get(name: string): any | undefined {
         return this.components.get(name);
     }
 
@@ -316,7 +316,7 @@ export class TamboComponentRegistry {
     /**
      * Get all components as array
      */
-    getAll(): TamboComponent[] {
+    getAll(): any[] {
         return Array.from(this.components.values());
     }
 

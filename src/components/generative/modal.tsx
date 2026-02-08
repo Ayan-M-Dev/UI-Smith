@@ -20,7 +20,7 @@ function getIcon(name: string | undefined): React.ElementType | null {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
-  return (LucideIcons as Record<string, React.ElementType>)[pascalName] || null;
+  return ((LucideIcons as any) as Record<string, React.ElementType>)[pascalName] || null;
 }
 
 // Size classes
@@ -192,7 +192,7 @@ export function Modal(props: ModalProps) {
               {HeaderIcon && (
                 <div
                   className={cn(
-                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center",
+                    "shrink-0 w-10 h-10 rounded-full flex items-center justify-center",
                     variantConfig.iconBg
                   )}
                 >
@@ -218,7 +218,7 @@ export function Modal(props: ModalProps) {
               {showCloseButton && (
                 <button
                   onClick={() => console.log("Modal closed")}
-                  className="flex-shrink-0 p-2 -m-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="shrink-0 p-2 -m-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />

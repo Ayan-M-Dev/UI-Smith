@@ -123,7 +123,7 @@ function TestimonialCard({
         <div className="flex items-center gap-3">
           {/* Avatar */}
           {showAvatars && (
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {testimonial.authorAvatarUrl ? (
                 <img
                   src={testimonial.authorAvatarUrl}
@@ -131,7 +131,7 @@ function TestimonialCard({
                   className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-medium">
                   {testimonial.authorName.charAt(0)}
                 </div>
               )}
@@ -161,7 +161,7 @@ function TestimonialCard({
             <img
               src={testimonial.logoUrl}
               alt={testimonial.authorCompany || "Company"}
-              className="flex-shrink-0 h-8 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all"
+              className="shrink-0 h-8 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all"
             />
           )}
         </div>

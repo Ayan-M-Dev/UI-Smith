@@ -121,7 +121,7 @@ export function Card(props: CardProps) {
           )}
         </div>
         {headerAction && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             {headerAction.variant === "link" ? (
               <a
                 href="#"
@@ -164,7 +164,7 @@ export function Card(props: CardProps) {
           className={imageClasses}
         />
         {imagePosition === "background" && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
         )}
       </div>
     );
@@ -213,7 +213,7 @@ export function Card(props: CardProps) {
         tabIndex={clickable ? 0 : undefined}
       >
         {imagePosition === "left" && (
-          <div className="flex-shrink-0 w-1/3">
+          <div className="shrink-0 w-1/3">
             <img
               src={imageUrl}
               alt={imageAlt}
@@ -227,7 +227,7 @@ export function Card(props: CardProps) {
           {renderFooter()}
         </div>
         {imagePosition === "right" && (
-          <div className="flex-shrink-0 w-1/3">
+          <div className="shrink-0 w-1/3">
             <img
               src={imageUrl}
               alt={imageAlt}

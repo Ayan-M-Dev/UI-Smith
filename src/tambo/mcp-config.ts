@@ -25,7 +25,7 @@ interface MCPServerConfig {
  */
 const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL || "http://localhost";
 
-export const mcpServers: MCPServerConfig[] = [
+export const mcpServers: any[] = [
     {
         name: "design-system",
         url: `${MCP_BASE_URL}:8261/mcp`,

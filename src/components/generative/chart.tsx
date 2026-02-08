@@ -387,7 +387,7 @@ export function Chart(props: ChartProps) {
         );
 
       default:
-        return null;
+        return <></>;
     }
   };
 

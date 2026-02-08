@@ -421,7 +421,7 @@ ${componentCode}
       {/* Header */}
       <header className="h-14 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center px-4 sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-violet-600 to-purple-600 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <h1 className="font-bold text-lg text-slate-900 dark:text-white">UI-Smith</h1>
@@ -631,7 +631,7 @@ ${componentCode}
                     ))
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
                         <Wand2 className="w-8 h-8 text-violet-500" />
                       </div>
                       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
@@ -658,7 +658,7 @@ ${componentCode}
                     </pre>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
                         <FileCode className="w-8 h-8 text-violet-500" />
                       </div>
                       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
@@ -705,7 +705,7 @@ ${componentCode}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center mb-4">
                         <Box className="w-8 h-8 text-violet-500" />
                       </div>
                       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">

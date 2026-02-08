@@ -34,7 +34,7 @@ function getIcon(name: string | undefined): React.ElementType {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
-  return (LucideIcons as Record<string, React.ElementType>)[pascalName] || LucideIcons.Circle;
+  return ((LucideIcons as any) as Record<string, React.ElementType>)[pascalName] || LucideIcons.Circle;
 }
 
 // Width mapping for sidebar
@@ -79,7 +79,7 @@ function NavItemComponent({
           depth > 0 && "ml-6 text-sm"
         )}
       >
-        <Icon className={cn("w-5 h-5 flex-shrink-0", collapsed && "mx-auto")} />
+        <Icon className={cn("w-5 h-5 shrink-0", collapsed && "mx-auto")} />
         
         {!collapsed && (
           <>
@@ -187,7 +187,7 @@ function Sidebar({
             {config.title}
           </h1>
         ) : (
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg" />
+          <div className="w-8 h-8 bg-linear-to-br from-violet-600 to-purple-600 rounded-lg" />
         )}
 
         {/* Mobile close button */}
@@ -242,7 +242,7 @@ function Sidebar({
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
                 {config.userInfo.name.charAt(0)}
               </div>
             )}
@@ -373,7 +373,7 @@ function Header({
       {config.showUserMenu && (
         <div className="relative group">
           <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600" />
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-purple-600" />
             <ChevronDown className="w-4 h-4 text-slate-500" />
           </button>
           

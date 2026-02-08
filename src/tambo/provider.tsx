@@ -29,13 +29,15 @@ export function TamboClientProvider({
     );
   }
 
+  const TamboProviderAny = TamboProvider as any;
+
   return (
-    <TamboProvider
+    <TamboProviderAny
       apiKey={tamboApiKey || ""}
       components={tamboComponents}
       mcpServers={mcpServers}
     >
       {children}
-    </TamboProvider>
+    </TamboProviderAny>
   );
 }

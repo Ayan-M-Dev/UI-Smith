@@ -16,9 +16,9 @@
 import { AgentConfig, AgentResponse, UISpec, ExportPackage } from "./types";
 
 export const exportEngineerConfig: AgentConfig = {
-    name: "Export Engineer",
-    role: "export-engineer",
-    systemPrompt: `You are the Export Engineer agent for UI-Smith. Your role is to convert validated UI specifications into production-ready code.
+  name: "Export Engineer",
+  role: "export-engineer",
+  systemPrompt: `You are the Export Engineer agent for UI-Smith. Your role is to convert validated UI specifications into production-ready code.
 
 ## Your Capabilities
 - Generate clean React + TypeScript code
@@ -49,117 +49,117 @@ export const exportEngineerConfig: AgentConfig = {
   ui-smith.config.json
   README.md
 `,
-    tools: [
-        "export:export_react_code",
-        "export:export_json_schema",
-        "export:generate_storybook_story",
-        "export:generate_export_package",
-    ],
-    temperature: 0.3,
-    maxTokens: 4000,
+  tools: [
+    "export:export_react_code",
+    "export:export_json_schema",
+    "export:generate_storybook_story",
+    "export:generate_export_package",
+  ],
+  temperature: 0.3,
+  maxTokens: 4000,
 };
 
 export type ExportFormat = "react" | "json" | "storybook" | "full";
 
 export interface ExportOptions {
-    format: ExportFormat;
-    typescript: boolean;
-    framework: "nextjs" | "vite" | "cra";
-    includeStyles: boolean;
-    includeReadme: boolean;
+  format: ExportFormat;
+  typescript: boolean;
+  framework: "nextjs" | "vite" | "cra";
+  includeStyles: boolean;
+  includeReadme: boolean;
 }
 
 /**
  * Export Engineer Agent Class
  */
 export class ExportEngineerAgent {
-    private defaultOptions: ExportOptions = {
-        format: "full",
-        typescript: true,
-        framework: "nextjs",
-        includeStyles: true,
-        includeReadme: true,
+  private defaultOptions: ExportOptions = {
+    format: "full",
+    typescript: true,
+    framework: "nextjs",
+    includeStyles: true,
+    includeReadme: true,
+  };
+
+  /**
+   * Export the UI specification to code
+   */
+  async export(uiSpec: UISpec, options?: Partial<ExportOptions>): Promise<AgentResponse> {
+    try {
+      const opts = { ...this.defaultOptions, ...options };
+      const exportPackage = await this.generateExport(uiSpec, opts);
+
+      return {
+        success: true,
+        data: exportPackage,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        errors: [{
+          code: "EXPORT_ERROR",
+          message: String(error),
+          severity: "error",
+        }],
+      };
+    }
+  }
+
+  /**
+   * Generate the export package
+   */
+  private async generateExport(uiSpec: UISpec, options: ExportOptions): Promise<ExportPackage> {
+    const files: ExportPackage["files"] = [];
+
+    // Generate based on format
+    switch (options.format) {
+      case "react":
+        files.push(this.generateReactFile(uiSpec, options));
+        break;
+      case "json":
+        files.push(this.generateJsonFile(uiSpec));
+        break;
+      case "storybook":
+        files.push(...this.generateStorybookFiles(uiSpec, options));
+        break;
+      case "full":
+      default:
+        files.push(this.generateReactFile(uiSpec, options));
+        if (options.includeStyles) {
+          files.push(this.generateStylesFile(uiSpec));
+        }
+        files.push(this.generateJsonFile(uiSpec));
+        if (options.includeReadme) {
+          files.push(this.generateReadmeFile(uiSpec));
+        }
+        break;
+    }
+
+    return {
+      format: options.format === "full" ? "react" : options.format,
+      files,
+      instructions: this.generateInstructions(options),
     };
+  }
 
-    /**
-     * Export the UI specification to code
-     */
-    async export(uiSpec: UISpec, options?: Partial<ExportOptions>): Promise<AgentResponse> {
-        try {
-            const opts = { ...this.defaultOptions, ...options };
-            const exportPackage = await this.generateExport(uiSpec, opts);
+  /**
+   * Generate React component file
+   */
+  private generateReactFile(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"][0] {
+    const ext = options.typescript ? "tsx" : "jsx";
+    const components = [...new Set(uiSpec.components.map(c => c.name))].join(", ");
 
-            return {
-                success: true,
-                data: exportPackage,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                errors: [{
-                    code: "EXPORT_ERROR",
-                    message: String(error),
-                    severity: "error",
-                }],
-            };
-        }
-    }
-
-    /**
-     * Generate the export package
-     */
-    private async generateExport(uiSpec: UISpec, options: ExportOptions): Promise<ExportPackage> {
-        const files: ExportPackage["files"] = [];
-
-        // Generate based on format
-        switch (options.format) {
-            case "react":
-                files.push(this.generateReactFile(uiSpec, options));
-                break;
-            case "json":
-                files.push(this.generateJsonFile(uiSpec));
-                break;
-            case "storybook":
-                files.push(...this.generateStorybookFiles(uiSpec, options));
-                break;
-            case "full":
-            default:
-                files.push(this.generateReactFile(uiSpec, options));
-                if (options.includeStyles) {
-                    files.push(this.generateStylesFile(uiSpec));
-                }
-                files.push(this.generateJsonFile(uiSpec));
-                if (options.includeReadme) {
-                    files.push(this.generateReadmeFile(uiSpec));
-                }
-                break;
-        }
-
-        return {
-            format: options.format === "full" ? "react" : options.format,
-            files,
-            instructions: this.generateInstructions(options),
-        };
-    }
-
-    /**
-     * Generate React component file
-     */
-    private generateReactFile(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"][0] {
-        const ext = options.typescript ? "tsx" : "jsx";
-        const components = [...new Set(uiSpec.components.map(c => c.name))].join(", ");
-
-        const componentCode = uiSpec.components
-            .map((comp, index) => {
-                const propsStr = this.propsToString(comp.props as Record<string, unknown>);
-                return `      {/* ${comp.name} ${index + 1} */}
+    const componentCode = uiSpec.components
+      .map((comp, index) => {
+        const propsStr = this.propsToString(comp.props as Record<string, unknown>);
+        return `      {/* ${comp.name} ${index + 1} */}
       <${comp.name}
         ${propsStr}
       />`;
-            })
-            .join("\n\n");
+      })
+      .join("\n\n");
 
-        const code = `${options.framework === "nextjs" ? '"use client";\n\n' : ""}import { ${components} } from "@/components/generative";
+    const code = `${options.framework === "nextjs" ? '"use client";\n\n' : ""}import { ${components} } from "@/components/generative";
 
 /**
  * ${uiSpec.name || "Generated UI"}
@@ -169,7 +169,7 @@ export class ExportEngineerAgent {
  */
 export ${options.framework === "nextjs" ? "default " : ""}function GeneratedPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <main className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="${uiSpec.layout?.maxWidth ? `max-w-[${uiSpec.layout.maxWidth}] mx-auto` : "container mx-auto"} px-4 py-8 space-y-${uiSpec.layout?.spacing?.replace("rem", "") || "8"}">
 ${componentCode}
       </div>
@@ -179,18 +179,18 @@ ${componentCode}
 ${options.framework !== "nextjs" ? "\nexport default GeneratedPage;" : ""}
 `;
 
-        return {
-            name: `page.${ext}`,
-            content: code,
-            type: "component",
-        };
-    }
+    return {
+      name: `page.${ext}`,
+      content: code,
+      type: "component",
+    };
+  }
 
-    /**
-     * Generate styles file
-     */
-    private generateStylesFile(_uiSpec: UISpec): ExportPackage["files"][0] {
-        const css = `/**
+  /**
+   * Generate styles file
+   */
+  private generateStylesFile(_uiSpec: UISpec): ExportPackage["files"][0] {
+    const css = `/**
  * Generated styles for UI-Smith export
  * These can be customized to match your design system
  */
@@ -262,46 +262,46 @@ ${options.framework !== "nextjs" ? "\nexport default GeneratedPage;" : ""}
 }
 `;
 
-        return {
-            name: "generated.css",
-            content: css,
-            type: "style",
-        };
-    }
+    return {
+      name: "generated.css",
+      content: css,
+      type: "style",
+    };
+  }
 
-    /**
-     * Generate JSON configuration file
-     */
-    private generateJsonFile(uiSpec: UISpec): ExportPackage["files"][0] {
-        const config = {
-            $schema: "https://ui-smith.dev/schema/v1.json",
-            name: uiSpec.name,
-            description: uiSpec.description,
-            version: uiSpec.metadata?.version || 1,
-            generatedAt: new Date().toISOString(),
-            generatedBy: "UI-Smith",
-            components: uiSpec.components.map((comp, index) => ({
-                id: `${comp.name.toLowerCase()}-${index}`,
-                type: comp.name,
-                props: comp.props,
-            })),
-            layout: uiSpec.layout,
-        };
+  /**
+   * Generate JSON configuration file
+   */
+  private generateJsonFile(uiSpec: UISpec): ExportPackage["files"][0] {
+    const config = {
+      $schema: "https://ui-smith.dev/schema/v1.json",
+      name: uiSpec.name,
+      description: uiSpec.description,
+      version: uiSpec.metadata?.version || 1,
+      generatedAt: new Date().toISOString(),
+      generatedBy: "UI-Smith",
+      components: uiSpec.components.map((comp, index) => ({
+        id: `${comp.name.toLowerCase()}-${index}`,
+        type: comp.name,
+        props: comp.props,
+      })),
+      layout: uiSpec.layout,
+    };
 
-        return {
-            name: "ui-smith.config.json",
-            content: JSON.stringify(config, null, 2),
-            type: "config",
-        };
-    }
+    return {
+      name: "ui-smith.config.json",
+      content: JSON.stringify(config, null, 2),
+      type: "config",
+    };
+  }
 
-    /**
-     * Generate README file
-     */
-    private generateReadmeFile(uiSpec: UISpec): ExportPackage["files"][0] {
-        const componentList = uiSpec.components.map(c => `- \`${c.name}\``).join("\n");
+  /**
+   * Generate README file
+   */
+  private generateReadmeFile(uiSpec: UISpec): ExportPackage["files"][0] {
+    const componentList = uiSpec.components.map(c => `- \`${c.name}\``).join("\n");
 
-        const readme = `# ${uiSpec.name || "Generated UI"}
+    const readme = `# ${uiSpec.name || "Generated UI"}
 
 ${uiSpec.description || "This UI was generated using UI-Smith."}
 
@@ -357,31 +357,31 @@ For issues or feature requests, visit [UI-Smith](https://github.com/your-repo/ui
 Generated at ${new Date().toISOString()}
 `;
 
-        return {
-            name: "README.md",
-            content: readme,
-            type: "config",
-        };
-    }
+    return {
+      name: "README.md",
+      content: readme,
+      type: "config",
+    };
+  }
 
-    /**
-     * Generate Storybook files
-     */
-    private generateStorybookFiles(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"] {
-        const files: ExportPackage["files"] = [];
-        const ext = options.typescript ? "tsx" : "jsx";
+  /**
+   * Generate Storybook files
+   */
+  private generateStorybookFiles(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"] {
+    const files: ExportPackage["files"] = [];
+    const ext = options.typescript ? "tsx" : "jsx";
 
-        // Group components by type
-        const componentGroups = new Map<string, typeof uiSpec.components>();
-        uiSpec.components.forEach(comp => {
-            const existing = componentGroups.get(comp.name) || [];
-            existing.push(comp);
-            componentGroups.set(comp.name, existing);
-        });
+    // Group components by type
+    const componentGroups = new Map<string, typeof uiSpec.components>();
+    uiSpec.components.forEach(comp => {
+      const existing = componentGroups.get(comp.name) || [];
+      existing.push(comp);
+      componentGroups.set(comp.name, existing);
+    });
 
-        // Generate a story for each component type
-        componentGroups.forEach((components, name) => {
-            const story = `import type { Meta, StoryObj } from "@storybook/react";
+    // Generate a story for each component type
+    componentGroups.forEach((components, name) => {
+      const story = `import type { Meta, StoryObj } from "@storybook/react";
 import { ${name} } from "@/components/generative";
 
 const meta: Meta<typeof ${name}> = {
@@ -397,86 +397,86 @@ export default meta;
 type Story = StoryObj<typeof ${name}>;
 
 ${components.map((comp, index) => {
-                const storyName = `Variant${index + 1}`;
-                return `export const ${storyName}: Story = {
+        const storyName = `Variant${index + 1}`;
+        return `export const ${storyName}: Story = {
   args: ${JSON.stringify(comp.props, null, 4).split("\n").join("\n  ")},
 };`;
-            }).join("\n\n")}
+      }).join("\n\n")}
 `;
 
-            files.push({
-                name: `${name}.stories.${ext}`,
-                content: story,
-                type: "component",
-            });
-        });
+      files.push({
+        name: `${name}.stories.${ext}`,
+        content: story,
+        type: "component",
+      });
+    });
 
-        return files;
+    return files;
+  }
+
+  /**
+   * Generate installation instructions
+   */
+  private generateInstructions(options: ExportOptions): string {
+    const steps: string[] = [];
+
+    steps.push("## Installation Instructions\n");
+    steps.push("1. Install required dependencies:");
+    steps.push("```bash");
+    steps.push("npm install @tambo-ai/react framer-motion lucide-react recharts zod");
+    steps.push("```\n");
+
+    if (options.framework === "nextjs") {
+      steps.push("2. Copy `page.tsx` to your `app/` directory");
+    } else {
+      steps.push("2. Copy `page.tsx` to your `src/` directory");
     }
 
-    /**
-     * Generate installation instructions
-     */
-    private generateInstructions(options: ExportOptions): string {
-        const steps: string[] = [];
+    if (options.includeStyles) {
+      steps.push("3. Import `generated.css` in your main layout or CSS file");
+    }
 
-        steps.push("## Installation Instructions\n");
-        steps.push("1. Install required dependencies:");
-        steps.push("```bash");
-        steps.push("npm install @tambo-ai/react framer-motion lucide-react recharts zod");
-        steps.push("```\n");
-
-        if (options.framework === "nextjs") {
-            steps.push("2. Copy `page.tsx` to your `app/` directory");
-        } else {
-            steps.push("2. Copy `page.tsx` to your `src/` directory");
-        }
-
-        if (options.includeStyles) {
-            steps.push("3. Import `generated.css` in your main layout or CSS file");
-        }
-
-        steps.push("\n## Path Configuration\n");
-        steps.push("Ensure `@/components/generative` resolves correctly in your tsconfig.json:");
-        steps.push("```json");
-        steps.push(`{
+    steps.push("\n## Path Configuration\n");
+    steps.push("Ensure `@/components/generative` resolves correctly in your tsconfig.json:");
+    steps.push("```json");
+    steps.push(`{
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]
     }
   }
 }`);
-        steps.push("```");
+    steps.push("```");
 
-        return steps.join("\n");
-    }
+    return steps.join("\n");
+  }
 
-    /**
-     * Convert props object to string representation
-     */
-    private propsToString(props: Record<string, unknown>): string {
-        return Object.entries(props)
-            .filter(([_, value]) => value !== undefined && value !== null)
-            .map(([key, value]) => {
-                if (typeof value === "string") {
-                    return `${key}="${value}"`;
-                } else if (typeof value === "boolean") {
-                    return value ? key : `${key}={false}`;
-                } else if (typeof value === "number") {
-                    return `${key}={${value}}`;
-                } else {
-                    // Complex objects: format with indentation
-                    const formatted = JSON.stringify(value, null, 10)
-                        .split("\n")
-                        .map((line, i) => i === 0 ? line : "        " + line)
-                        .join("\n");
-                    return `${key}={${formatted}}`;
-                }
-            })
-            .join("\n        ");
-    }
+  /**
+   * Convert props object to string representation
+   */
+  private propsToString(props: Record<string, unknown>): string {
+    return Object.entries(props)
+      .filter(([_, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => {
+        if (typeof value === "string") {
+          return `${key}="${value}"`;
+        } else if (typeof value === "boolean") {
+          return value ? key : `${key}={false}`;
+        } else if (typeof value === "number") {
+          return `${key}={${value}}`;
+        } else {
+          // Complex objects: format with indentation
+          const formatted = JSON.stringify(value, null, 10)
+            .split("\n")
+            .map((line, i) => i === 0 ? line : "        " + line)
+            .join("\n");
+          return `${key}={${formatted}}`;
+        }
+      })
+      .join("\n        ");
+  }
 }
 
 export function createExportEngineerAgent(): ExportEngineerAgent {
-    return new ExportEngineerAgent();
+  return new ExportEngineerAgent();
 }

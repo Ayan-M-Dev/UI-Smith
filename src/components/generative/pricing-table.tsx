@@ -54,7 +54,7 @@ function TierCard({
       className={cn(
         "relative p-6 rounded-2xl transition-all duration-300",
         tier.featured
-          ? "bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-2xl shadow-violet-500/30 scale-105 z-10 border-0"
+          ? "bg-linear-to-br from-violet-600 to-purple-700 text-white shadow-2xl shadow-violet-500/30 scale-105 z-10 border-0"
           : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-lg"
       )}
     >
@@ -163,14 +163,14 @@ function TierCard({
               {feature.included ? (
                 <Check
                   className={cn(
-                    "w-5 h-5 flex-shrink-0",
+                    "w-5 h-5 shrink-0",
                     tier.featured ? "text-emerald-300" : "text-emerald-500"
                   )}
                 />
               ) : (
                 <X
                   className={cn(
-                    "w-5 h-5 flex-shrink-0",
+                    "w-5 h-5 shrink-0",
                     tier.featured ? "text-violet-400" : "text-slate-300"
                   )}
                 />

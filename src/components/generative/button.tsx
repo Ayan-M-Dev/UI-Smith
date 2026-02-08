@@ -88,7 +88,7 @@ function getIcon(name: string | undefined): React.ElementType | null {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
   
-  return (LucideIcons as Record<string, React.ElementType>)[pascalName] || null;
+  return ((LucideIcons as any) as Record<string, React.ElementType>)[pascalName] || null;
 }
 
 export function Button(props: ButtonProps) {

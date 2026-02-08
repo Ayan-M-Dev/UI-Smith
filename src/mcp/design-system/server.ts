@@ -296,7 +296,7 @@ server.tool(
                             type: "text" as const,
                             text: JSON.stringify({
                                 valid: false,
-                                errors: result.error.errors.map((e) => ({
+                                errors: result.error.errors.map((e: any) => ({
                                     path: e.path.join("."),
                                     message: e.message,
                                     code: e.code,
