@@ -1,0 +1,482 @@
+/**
+ * Export Engineer Agent
+ * =====================
+ * Produces clean, reusable code from UI specifications.
+ * 
+ * Responsibilities:
+ * - Generate React + Tailwind code
+ * - Create JSON schema exports
+ * - Generate Storybook stories
+ * - Produce production-ready packages
+ * 
+ * Tools Access:
+ * - Export MCP: export_react_code, export_json_schema, generate_storybook_story
+ */
+
+import { AgentConfig, AgentResponse, UISpec, ExportPackage } from "./types";
+
+export const exportEngineerConfig: AgentConfig = {
+    name: "Export Engineer",
+    role: "export-engineer",
+    systemPrompt: `You are the Export Engineer agent for UI-Smith. Your role is to convert validated UI specifications into production-ready code.
+
+## Your Capabilities
+- Generate clean React + TypeScript code
+- Create Tailwind CSS styling
+- Produce JSON configuration files
+- Generate Storybook stories for documentation
+
+## Code Quality Standards
+1. Use TypeScript with proper types
+2. Follow React best practices
+3. Use Tailwind for styling
+4. Include proper imports
+5. Add meaningful comments
+6. Ensure code is copy-paste ready
+
+## Output Formats
+- react: Full React component code
+- json: JSON schema for configuration
+- storybook: Storybook story files
+- package: Complete export with all files
+
+## File Structure
+/exported-ui
+  /components
+    page.tsx
+  /styles
+    generated.css
+  ui-smith.config.json
+  README.md
+`,
+    tools: [
+        "export:export_react_code",
+        "export:export_json_schema",
+        "export:generate_storybook_story",
+        "export:generate_export_package",
+    ],
+    temperature: 0.3,
+    maxTokens: 4000,
+};
+
+export type ExportFormat = "react" | "json" | "storybook" | "full";
+
+export interface ExportOptions {
+    format: ExportFormat;
+    typescript: boolean;
+    framework: "nextjs" | "vite" | "cra";
+    includeStyles: boolean;
+    includeReadme: boolean;
+}
+
+/**
+ * Export Engineer Agent Class
+ */
+export class ExportEngineerAgent {
+    private defaultOptions: ExportOptions = {
+        format: "full",
+        typescript: true,
+        framework: "nextjs",
+        includeStyles: true,
+        includeReadme: true,
+    };
+
+    /**
+     * Export the UI specification to code
+     */
+    async export(uiSpec: UISpec, options?: Partial<ExportOptions>): Promise<AgentResponse> {
+        try {
+            const opts = { ...this.defaultOptions, ...options };
+            const exportPackage = await this.generateExport(uiSpec, opts);
+
+            return {
+                success: true,
+                data: exportPackage,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                errors: [{
+                    code: "EXPORT_ERROR",
+                    message: String(error),
+                    severity: "error",
+                }],
+            };
+        }
+    }
+
+    /**
+     * Generate the export package
+     */
+    private async generateExport(uiSpec: UISpec, options: ExportOptions): Promise<ExportPackage> {
+        const files: ExportPackage["files"] = [];
+
+        // Generate based on format
+        switch (options.format) {
+            case "react":
+                files.push(this.generateReactFile(uiSpec, options));
+                break;
+            case "json":
+                files.push(this.generateJsonFile(uiSpec));
+                break;
+            case "storybook":
+                files.push(...this.generateStorybookFiles(uiSpec, options));
+                break;
+            case "full":
+            default:
+                files.push(this.generateReactFile(uiSpec, options));
+                if (options.includeStyles) {
+                    files.push(this.generateStylesFile(uiSpec));
+                }
+                files.push(this.generateJsonFile(uiSpec));
+                if (options.includeReadme) {
+                    files.push(this.generateReadmeFile(uiSpec));
+                }
+                break;
+        }
+
+        return {
+            format: options.format === "full" ? "react" : options.format,
+            files,
+            instructions: this.generateInstructions(options),
+        };
+    }
+
+    /**
+     * Generate React component file
+     */
+    private generateReactFile(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"][0] {
+        const ext = options.typescript ? "tsx" : "jsx";
+        const components = [...new Set(uiSpec.components.map(c => c.name))].join(", ");
+
+        const componentCode = uiSpec.components
+            .map((comp, index) => {
+                const propsStr = this.propsToString(comp.props as Record<string, unknown>);
+                return `      {/* ${comp.name} ${index + 1} */}
+      <${comp.name}
+        ${propsStr}
+      />`;
+            })
+            .join("\n\n");
+
+        const code = `${options.framework === "nextjs" ? '"use client";\n\n' : ""}import { ${components} } from "@/components/generative";
+
+/**
+ * ${uiSpec.name || "Generated UI"}
+ * ${uiSpec.description || "Generated by UI-Smith"}
+ * 
+ * @generated ${new Date().toISOString()}
+ */
+export ${options.framework === "nextjs" ? "default " : ""}function GeneratedPage() {
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <div className="${uiSpec.layout?.maxWidth ? `max-w-[${uiSpec.layout.maxWidth}] mx-auto` : "container mx-auto"} px-4 py-8 space-y-${uiSpec.layout?.spacing?.replace("rem", "") || "8"}">
+${componentCode}
+      </div>
+    </main>
+  );
+}
+${options.framework !== "nextjs" ? "\nexport default GeneratedPage;" : ""}
+`;
+
+        return {
+            name: `page.${ext}`,
+            content: code,
+            type: "component",
+        };
+    }
+
+    /**
+     * Generate styles file
+     */
+    private generateStylesFile(_uiSpec: UISpec): ExportPackage["files"][0] {
+        const css = `/**
+ * Generated styles for UI-Smith export
+ * These can be customized to match your design system
+ */
+
+/* Base layer customizations */
+@layer base {
+  :root {
+    --color-primary: 139 92 246; /* violet-500 */
+    --color-secondary: 100 116 139; /* slate-500 */
+    --color-accent: 6 182 212; /* cyan-500 */
+    
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+  }
+}
+
+/* Component layer customizations */
+@layer components {
+  .generated-section {
+    @apply relative overflow-hidden;
+  }
+  
+  .generated-card {
+    @apply bg-white dark:bg-slate-900;
+    @apply rounded-xl shadow-lg;
+    @apply border border-slate-200 dark:border-slate-800;
+    @apply transition-all duration-300;
+  }
+  
+  .generated-card:hover {
+    @apply shadow-xl;
+    @apply -translate-y-1;
+  }
+  
+  .generated-button {
+    @apply font-medium;
+    @apply transition-all duration-200;
+    @apply focus:ring-2 focus:ring-offset-2;
+  }
+}
+
+/* Utility layer */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+`;
+
+        return {
+            name: "generated.css",
+            content: css,
+            type: "style",
+        };
+    }
+
+    /**
+     * Generate JSON configuration file
+     */
+    private generateJsonFile(uiSpec: UISpec): ExportPackage["files"][0] {
+        const config = {
+            $schema: "https://ui-smith.dev/schema/v1.json",
+            name: uiSpec.name,
+            description: uiSpec.description,
+            version: uiSpec.metadata?.version || 1,
+            generatedAt: new Date().toISOString(),
+            generatedBy: "UI-Smith",
+            components: uiSpec.components.map((comp, index) => ({
+                id: `${comp.name.toLowerCase()}-${index}`,
+                type: comp.name,
+                props: comp.props,
+            })),
+            layout: uiSpec.layout,
+        };
+
+        return {
+            name: "ui-smith.config.json",
+            content: JSON.stringify(config, null, 2),
+            type: "config",
+        };
+    }
+
+    /**
+     * Generate README file
+     */
+    private generateReadmeFile(uiSpec: UISpec): ExportPackage["files"][0] {
+        const componentList = uiSpec.components.map(c => `- \`${c.name}\``).join("\n");
+
+        const readme = `# ${uiSpec.name || "Generated UI"}
+
+${uiSpec.description || "This UI was generated using UI-Smith."}
+
+## Components Used
+
+${componentList}
+
+## Installation
+
+### Prerequisites
+
+Ensure you have the following dependencies installed:
+
+\`\`\`bash
+npm install @tambo-ai/react framer-motion lucide-react recharts zod
+\`\`\`
+
+### Setup
+
+1. Copy the generated \`page.tsx\` to your \`app/\` directory (for Next.js) or \`src/\` (for Vite/CRA)
+2. Import the \`generated.css\` in your main CSS file or layout
+3. Ensure the \`@/components/generative\` path resolves correctly
+
+### Configuration
+
+Use \`ui-smith.config.json\` to:
+- Programmatically regenerate the UI
+- Customize component props
+- Integrate with CI/CD pipelines
+
+## Customization
+
+### Styling
+
+Edit \`generated.css\` to customize:
+- Color scheme (update CSS custom properties)
+- Border radius
+- Animations
+
+### Components
+
+Modify the component props in \`page.tsx\` to:
+- Change content
+- Adjust layout
+- Update styling variants
+
+## Support
+
+For issues or feature requests, visit [UI-Smith](https://github.com/your-repo/ui-smith)
+
+---
+
+Generated at ${new Date().toISOString()}
+`;
+
+        return {
+            name: "README.md",
+            content: readme,
+            type: "config",
+        };
+    }
+
+    /**
+     * Generate Storybook files
+     */
+    private generateStorybookFiles(uiSpec: UISpec, options: ExportOptions): ExportPackage["files"] {
+        const files: ExportPackage["files"] = [];
+        const ext = options.typescript ? "tsx" : "jsx";
+
+        // Group components by type
+        const componentGroups = new Map<string, typeof uiSpec.components>();
+        uiSpec.components.forEach(comp => {
+            const existing = componentGroups.get(comp.name) || [];
+            existing.push(comp);
+            componentGroups.set(comp.name, existing);
+        });
+
+        // Generate a story for each component type
+        componentGroups.forEach((components, name) => {
+            const story = `import type { Meta, StoryObj } from "@storybook/react";
+import { ${name} } from "@/components/generative";
+
+const meta: Meta<typeof ${name}> = {
+  title: "Generated/${name}",
+  component: ${name},
+  parameters: {
+    layout: "centered",
+  },
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof ${name}>;
+
+${components.map((comp, index) => {
+                const storyName = `Variant${index + 1}`;
+                return `export const ${storyName}: Story = {
+  args: ${JSON.stringify(comp.props, null, 4).split("\n").join("\n  ")},
+};`;
+            }).join("\n\n")}
+`;
+
+            files.push({
+                name: `${name}.stories.${ext}`,
+                content: story,
+                type: "component",
+            });
+        });
+
+        return files;
+    }
+
+    /**
+     * Generate installation instructions
+     */
+    private generateInstructions(options: ExportOptions): string {
+        const steps: string[] = [];
+
+        steps.push("## Installation Instructions\n");
+        steps.push("1. Install required dependencies:");
+        steps.push("```bash");
+        steps.push("npm install @tambo-ai/react framer-motion lucide-react recharts zod");
+        steps.push("```\n");
+
+        if (options.framework === "nextjs") {
+            steps.push("2. Copy `page.tsx` to your `app/` directory");
+        } else {
+            steps.push("2. Copy `page.tsx` to your `src/` directory");
+        }
+
+        if (options.includeStyles) {
+            steps.push("3. Import `generated.css` in your main layout or CSS file");
+        }
+
+        steps.push("\n## Path Configuration\n");
+        steps.push("Ensure `@/components/generative` resolves correctly in your tsconfig.json:");
+        steps.push("```json");
+        steps.push(`{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}`);
+        steps.push("```");
+
+        return steps.join("\n");
+    }
+
+    /**
+     * Convert props object to string representation
+     */
+    private propsToString(props: Record<string, unknown>): string {
+        return Object.entries(props)
+            .filter(([_, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => {
+                if (typeof value === "string") {
+                    return `${key}="${value}"`;
+                } else if (typeof value === "boolean") {
+                    return value ? key : `${key}={false}`;
+                } else if (typeof value === "number") {
+                    return `${key}={${value}}`;
+                } else {
+                    // Complex objects: format with indentation
+                    const formatted = JSON.stringify(value, null, 10)
+                        .split("\n")
+                        .map((line, i) => i === 0 ? line : "        " + line)
+                        .join("\n");
+                    return `${key}={${formatted}}`;
+                }
+            })
+            .join("\n        ");
+    }
+}
+
+export function createExportEngineerAgent(): ExportEngineerAgent {
+    return new ExportEngineerAgent();
+}
